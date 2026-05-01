@@ -51,9 +51,9 @@ export default function ProjectTable() {
               <td style={{ textAlign: "center" }}>{project.web}</td>
               <td>{project.status}</td>
               <td>{project.timesheet}</td>
-              <td style={{ textAlign: "center" }}>
-                <button className="action-btn" onClick={() => editProject(index)}>Edit</button>
-                <button className="action-btn del" onClick={() => deleteProject(index)}>Delete</button>
+<td style={{ textAlign: "center" }}>
+                <button className="action-btn" onClick={() => editProject(project.sr)}>Edit</button>
+                <button className="action-btn del" onClick={() => deleteProject(project.sr)}>Delete</button>
               </td>
             </tr>
           ))}

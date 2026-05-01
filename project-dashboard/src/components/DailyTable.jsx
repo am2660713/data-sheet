@@ -152,7 +152,20 @@ export default function DailyTable() {
             step="0.1"
             placeholder="Billable"
             value={form.b}
-            onChange={(e) => setForm((prev) => ({ ...prev, b: e.target.value }))}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                setForm((prev) => ({ ...prev, b: "" }));
+              } else {
+                const billable = parseFloat(value);
+                if (!Number.isNaN(billable)) {
+                  const nonBillable = Math.max(0, parseFloat((8.5 - billable).toFixed(1)));
+                  setForm((prev) => ({ ...prev, b: value, nb: nonBillable.toString() }));
+                } else {
+                  setForm((prev) => ({ ...prev, b: value }));
+                }
+              }
+            }}
           />
         </label>
 

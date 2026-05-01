@@ -1,4 +1,15 @@
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
+
 export default function Topbar() {
+  const { authUser, logout } = useAppContext();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
     <div className="topbar">
       <div className="topbar-logo">
@@ -10,12 +21,13 @@ export default function Topbar() {
         </svg>
         Project Data 2026
       </div>
-      <div className="topbar-tabs">
-        <div className="topbar-tab">File</div>
-        <div className="topbar-tab active">Home</div>
-        <div className="topbar-tab">Insert</div>
-        <div className="topbar-tab">View</div>
-        <div className="topbar-tab">Data</div>
+      <div className="topbar-user">
+        👤 {authUser?.name || "Guest"}
+        {authUser && (
+          <button className="logout-btn" onClick={handleLogout} title="Logout">
+            🚪 Logout
+          </button>
+        )}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import Modal from "../components/Modal";
 import { useAppContext } from "../context/AppContext";
 
 export default function Dashboard() {
-  const { activeSheet, switchSheet, chartsVisible, summary } = useAppContext();
+  const { activeSheet, switchSheet, chartsVisible, summary, authUser } = useAppContext();
 
   return (
     <div>
@@ -65,7 +65,7 @@ export default function Dashboard() {
         <span id="sbRows">Rows: {summary.total}</span>
         <span>A.Y. 2026</span>
         <span style={{ flex: 1 }}></span>
-        <span>👤 Employee Project Data</span>
+        <span>👤 {authUser?.name || "Employee Project Data"}</span>
       </div>
     </div>
   );

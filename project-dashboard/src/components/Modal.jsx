@@ -8,10 +8,10 @@ export default function Modal() {
     <div id="modal" className="modal" role="dialog" aria-hidden={!modalOpen} style={{ display: "flex" }}>
       <div className="panel" role="document">
         <h3 id="modalTitle">{modalValues.name ? "Edit Project" : "Add Project"}</h3>
-        <div className="grid">
-          <input placeholder="Project name" value={modalValues.name} onChange={(e) => setModalValues((prev) => ({ ...prev, name: e.target.value }))} />
-          <input placeholder="Client" value={modalValues.client} onChange={(e) => setModalValues((prev) => ({ ...prev, client: e.target.value }))} />
-          <input placeholder="Product line" value={modalValues.product} onChange={(e) => setModalValues((prev) => ({ ...prev, product: e.target.value }))} />
+<div className="grid">
+<input placeholder="Project name *" required value={modalValues.name} onChange={(e) => setModalValues((prev) => ({ ...prev, name: e.target.value.replace(/[0-9]/g, "") }))} pattern="[^0-9]*" />
+          <input placeholder="Client *" required value={modalValues.client} onChange={(e) => setModalValues((prev) => ({ ...prev, client: e.target.value.replace(/[0-9]/g, "") }))} pattern="[^0-9]*" />
+          <input placeholder="Product line *" required value={modalValues.product} onChange={(e) => setModalValues((prev) => ({ ...prev, product: e.target.value.replace(/[0-9]/g, "") }))} pattern="[^0-9]*" />
           <input placeholder="Job type" value={modalValues.jobType} onChange={(e) => setModalValues((prev) => ({ ...prev, jobType: e.target.value }))} />
           <input placeholder="Total hours" type="number" step="0.1" value={modalValues.hours} onChange={(e) => setModalValues((prev) => ({ ...prev, hours: e.target.value }))} />
           <input placeholder="Web Version" value={modalValues.web} onChange={(e) => setModalValues((prev) => ({ ...prev, web: e.target.value }))} />

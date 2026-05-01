@@ -1,3 +1,4 @@
+/* global Chart */
 import { useAppContext } from "../context/AppContext";
 import { useEffect, useRef } from "react";
 

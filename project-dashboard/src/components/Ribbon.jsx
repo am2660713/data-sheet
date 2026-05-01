@@ -1,7 +1,7 @@
 import { useAppContext } from "../context/AppContext";
 
 export default function Ribbon() {
-  const { exportCSV, toggleFilters, toggleCharts, filtersVisible, chartsVisible, searchQuery, setSearchQuery, openAddProject, clearFilters, summary } = useAppContext();
+  const { exportCSV, toggleFilters, toggleCharts, filtersVisible, searchQuery, setSearchQuery, openAddProject, clearFilters, summary } = useAppContext();
 
   return (
     <div className="ribbon">

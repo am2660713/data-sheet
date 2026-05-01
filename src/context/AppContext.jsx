@@ -353,8 +353,20 @@ export function AppProvider({ children }) {
     setActiveMonth(month);
   }
 
-  function switchSheet(name) {
+function switchSheet(name) {
     setActiveSheet(name);
+  }
+
+  function logout() {
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_ENABLED_KEY);
+    localStorage.removeItem(storageKey);
+    setAuthUser(null);
+    setStorageKey(STORAGE_KEY_BASE + "guest");
+    setProjects(defaultProjects);
+    setDaily(initialDaily);
+    setMonthly(initialMonthly);
+    setFilteredProjects(defaultProjects);
   }
 
   function toggleFilters() {
@@ -434,8 +446,9 @@ export function AppProvider({ children }) {
         addDailyEntry,
         updateDailyEntry,
         deleteDailyEntry,
-        setMonth,
+setMonth,
         exportCSV,
+        logout,
       }}
     >
       {children}

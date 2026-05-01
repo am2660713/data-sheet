@@ -1,7 +1,7 @@
 import { useAppContext } from "../context/AppContext";
 
 export default function Topbar() {
-  const { authUser } = useAppContext();
+  const { authUser, logout } = useAppContext();
 
   return (
     <div className="topbar">
@@ -14,7 +14,14 @@ export default function Topbar() {
         </svg>
         Project Data 2026
       </div>
-      <div className="topbar-user">👤 {authUser?.name || "Guest"}</div>
+      <div className="topbar-user">
+        👤 {authUser?.name || "Guest"}
+        {authUser && (
+          <button className="logout-btn" onClick={logout} title="Logout">
+            🚪
+          </button>
+        )}
+      </div>
     </div>
   );
 }

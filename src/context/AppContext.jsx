@@ -138,43 +138,42 @@ export function AppProvider({ children }) {
     const headers = ["Sr", "Project Name", "Client", "Product Line", "Job Type", "Hours", "WEB Version", "Status", "Timesheet"];
     const rows = filteredProjects.map((project) => [
       project.sr,
-      `"${project.name}"`,
-      `"${project.client}"`,
+      project.name,
+      project.client,
       project.product,
       project.jobType,
-      project.hours || 0,
+      project.hours,
       project.web,
       project.status,
       project.timesheet,
-    ].join(","));
-    const csv = [headers.join(","), ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
-    link.href = url;
-    link.download = "Project_Data_2026.csv";
+    link.href = URL.createObjectURL(blob);
+    link.download = "projects.csv";
     link.click();
-    URL.revokeObjectURL(url);
   }
 
   function applyFilters() {
-    const query = searchQuery.trim().toLowerCase();
-    const filtered = projects.filter((project) => {
-      const rowValues = [project.sr, project.name, project.client, project.product, project.jobType, project.hours, project.web, project.status, project.timesheet];
-      if (query && !rowValues.some((value) => String(value || "").toLowerCase().includes(query))) {
-        return false;
-      }
-      if (filters.f0 && !String(project.sr).includes(filters.f0)) return false;
-      if (filters.f1 && !project.name.toLowerCase().includes(filters.f1.toLowerCase())) return false;
-      if (filters.f2 && project.client !== filters.f2) return false;
-      if (filters.f3 && project.product !== filters.f3) return false;
-      if (filters.f4 && project.jobType !== filters.f4) return false;
-      if (filters.f6 && project.web !== filters.f6) return false;
-      if (filters.f7 && project.status !== filters.f7) return false;
-      if (filters.f8 && project.timesheet !== filters.f8) return false;
-      return true;
+    let results = projects;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      results = results.filter((project) =>
+        project.name.toLowerCase().includes(q) ||
+        project.client.toLowerCase().includes(q) ||
+        project.product.toLowerCase().includes(q)
+      );
+    }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (!value.trim()) return;
+      const idx = parseInt(key.replace("f", ""));
+      const fields = ["sr", "name", "client", "product", "jobType", , "web", "status", "timesheet"];
+      const field = fields[idx];
+      if (!field) return;
+      results = results.filter((p) => String(p[field]).toLowerCase().includes(value.toLowerCase()));
     });
-    setFilteredProjects(filtered);
+    setFilteredProjects(results);
   }
 
   function clearFilters() {
@@ -182,30 +181,24 @@ export function AppProvider({ children }) {
     setFilters({ f0: "", f1: "", f2: "", f3: "", f4: "", f6: "", f7: "", f8: "" });
   }
 
-  function sortTable(columnIndex) {
-    const keys = ["sr", "name", "client", "product", "jobType", "hours", "web", "status", "timesheet"];
-    const key = keys[columnIndex];
-    if (!key) return;
-    const direction = !sortDir[columnIndex];
-    setSortDir({ ...sortDir, [columnIndex]: direction });
+  function sortTable(field) {
+    const direction = sortDir[field] === "asc" ? "desc" : "asc";
     const sorted = [...filteredProjects].sort((a, b) => {
-      const va = String(a[key] || "").toLowerCase();
-      const vb = String(b[key] || "").toLowerCase();
-      if (va < vb) return direction ? -1 : 1;
-      if (va > vb) return direction ? 1 : -1;
-      return 0;
+      const aVal = a[field];
+      const bVal = b[field];
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return direction === "asc" ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      return direction === "asc" ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
     });
     setFilteredProjects(sorted);
+    setSortDir({ ...sortDir, [field]: direction });
   }
 
-  function deleteProject(index) {
-    const project = filteredProjects[index];
-    if (!project) return;
-    const next = projects.filter((item) => item.sr !== project.sr);
-    next.forEach((item, idx) => {
-      item.sr = idx + 1;
-    });
-    setProjects(next);
+  function deleteProject(sr) {
+    setProjects((prev) => prev.filter((p) => p.sr !== sr));
   }
 
   function openAddProject() {
@@ -214,50 +207,42 @@ export function AppProvider({ children }) {
     setModalOpen(true);
   }
 
-  function editProject(index) {
-    const project = filteredProjects[index];
+  function editProject(sr) {
+    const project = projects.find((p) => p.sr === sr);
     if (!project) return;
-    const realIndex = projects.findIndex((item) => item.sr === project.sr);
-    setEditingIndex(realIndex);
-    setModalValues({
-      name: project.name,
-      client: project.client,
-      product: project.product,
-      jobType: project.jobType,
-      hours: project.hours || "",
-      web: project.web || "",
-      status: project.status || "Delivered",
-      timesheet: project.timesheet || "Delivered",
-    });
+    setEditingIndex(sr);
+    setModalValues(project);
     setModalOpen(true);
   }
 
   function saveProject() {
-    const nextList = [...projects];
-    const item = {
-      sr: editingIndex >= 0 ? nextList[editingIndex]?.sr : nextList.length + 1,
-      name: modalValues.name.trim(),
-      client: modalValues.client.trim(),
-      product: modalValues.product.trim(),
-      jobType: modalValues.jobType.trim(),
-      hours: Number(modalValues.hours) || 0,
-      web: modalValues.web.trim() || "—",
-      status: modalValues.status,
-      timesheet: modalValues.timesheet,
-    };
-    if (!item.name) return;
-    if (editingIndex >= 0 && nextList[editingIndex]) {
-      nextList[editingIndex] = item;
-    } else {
-      nextList.push(item);
+    const { name, client, product, jobType, hours, web, status, timesheet } = modalValues;
+    if (!name.trim() || !client.trim()) {
+      alert("Project name and client are required.");
+      return;
     }
-    nextList.forEach((project, idx) => { project.sr = idx + 1; });
-    setProjects(nextList);
-    setModalOpen(false);
+    if (editingIndex >= 0) {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.sr === editingIndex
+            ? { ...p, name: name.trim(), client: client.trim(), product: product.trim(), jobType: jobType.trim(), hours: Number(hours) || 0, web: web.trim(), status, timesheet }
+            : p
+        )
+      );
+    } else {
+      const newSr = projects.length > 0 ? Math.max(...projects.map((p) => p.sr)) + 1 : 1;
+      setProjects((prev) => [
+        ...prev,
+        { sr: newSr, name: name.trim(), client: client.trim(), product: product.trim(), jobType: jobType.trim(), hours: Number(hours) || 0, web: web.trim(), status, timesheet },
+      ]);
+    }
+    closeModal();
   }
 
   function closeModal() {
     setModalOpen(false);
+    setEditingIndex(-1);
+    setModalValues(defaultModalValues);
   }
 
   function calculateProjectUsage(projectName, exclude = null) {
@@ -373,21 +358,18 @@ export function AppProvider({ children }) {
   }
 
   function toggleFilters() {
-    setFiltersVisible((value) => !value);
+    setFiltersVisible(!filtersVisible);
   }
 
   function toggleCharts() {
-    setChartsVisible((value) => !value);
+    setChartsVisible(!chartsVisible);
   }
 
   const summary = useMemo(() => {
-    return {
-      total: filteredProjects.length,
-      delivered: filteredProjects.filter((project) => project.status === "Delivered").length,
-      inProgress: filteredProjects.filter((project) => project.status === "In Progress").length,
-      hours: filteredProjects.reduce((sum, project) => sum + (Number(project.hours) || 0), 0),
-      clients: new Set(filteredProjects.map((project) => project.client)).size,
-    };
+    const total = filteredProjects.length;
+    const billable = filteredProjects.reduce((sum, p) => sum + (Number(p.hours) || 0), 0);
+    const clients = new Set(filteredProjects.map((p) => p.client)).size;
+    return { total, billable, clients };
   }, [filteredProjects]);
 
   const dailySummary = useMemo(() => {
